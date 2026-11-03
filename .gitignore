@@ -1,0 +1,30 @@
+# 模型与二进制（体积大，不入库）
+vision/models/
+vision/bin/
+vision/logs/
+android/sdk/
+android/_dl/
+android/build/
+android/_t/
+
+# 原始数据（版权 + 体积，可用 tools/download_raw.py 重新下载）
+raw/cfct6/
+
+# 签名密钥
+*.keystore
+
+# 生成物 / 临时文件
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.idsig
+诊断报告.txt
+server_run.log
+tests/_probe*.html
+tests/_shot_*.html
+tests/_mobile_embedded.html
+
+# 系统
+.DS_Store
+Thumbs.db

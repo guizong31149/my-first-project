@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#FBF7F0" />
+<meta name="description" content="食光 MealLens — 专业营养师设计的热量查询与饮食指南 App：食物热量速查、拍照识别、一日三餐智能搭配、营养分析。" />
+<title>食光 MealLens · 热量查询与饮食指南</title>
+<link rel="stylesheet" href="src/styles.css" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png" />
+</head>
+<body>
+<div class="app-frame">
+  <div class="app" id="app">
+
+    <!-- ================= 首页 ================= -->
+    <section class="page" id="page-home" data-page="home">
+      <header class="topbar">
+        <div>
+          <p class="topbar-kicker" id="homeGreeting">你好</p>
+          <h1 class="topbar-title">今日营养</h1>
+        </div>
+        <button class="icon-btn" id="homeDateBtn" title="切换日期">📅</button>
+      </header>
+
+      <div class="date-strip" id="dateStrip"></div>
+
+      <!-- 热量环 -->
+      <div class="card hero-card">
+        <div class="hero-grid">
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+              <circle class="ring-arc" id="ringArc" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-kcal" id="ringKcal">0</span>
+              <span class="ring-unit">千卡 已摄入</span>
+            </div>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-row">
+              <span class="dot dot-green"></span>
+              <span class="hero-label">目标</span>
+              <b id="statTarget">—</b>
+            </div>
+            <div class="hero-row">
+              <span class="dot dot-orange"></span>
+              <span class="hero-label">还可摄入</span>
+              <b id="statLeft">—</b>
+            </div>
+            <div class="hero-row">
+              <span class="dot dot-blue"></span>
+              <span class="hero-label">已记录</span>
+              <b id="statCount">0 项</b>
+            </div>
+            <div class="hero-caliber" id="tdeeHint">完善身体档案后计算个性化目标</div>
+          </div>
+        </div>
+        <div class="macro-list" id="macroList"></div>
+      </div>
+
+      <!-- 今日三餐 -->
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">今日三餐</h2>
+          <button class="link-btn" data-go="plan">去搭配 ›</button>
+        </div>
+        <div id="mealSummary"></div>
+      </div>
+
+      <!-- 营养师点评 -->
+      <div class="card advice-card">
+        <div class="card-head">
+          <h2 class="card-title">🧑‍⚕️ 营养师点评</h2>
+          <span class="badge" id="gradeBadge">—</span>
+        </div>
+        <div id="adviceBody" class="advice-body"></div>
+      </div>
+
+      <!-- 快捷入口 -->
+      <div class="quick-grid">
+        <button class="quick" data-go="search"><span>🔍</span><b>查热量</b><i>582 种食物</i></button>
+        <button class="quick" data-go="camera"><span>📷</span><b>拍照识别</b><i>AI 算份量</i></button>
+        <button class="quick" data-go="plan"><span>🍱</span><b>三餐推荐</b><i>按目标配餐</i></button>
+        <button class="quick" data-go="guide"><span>📖</span><b>饮食指南</b><i>膳食指南 2022</i></button>
+      </div>
+    </section>
+
+    <!-- ================= 查询 ================= -->
+    <section class="page" id="page-search" data-page="search">
+      <header class="topbar">
+        <div>
+          <p class="topbar-kicker">食物成分表 · 每 100g</p>
+          <h1 class="topbar-title">查热量</h1>
+        </div>
+        <button class="icon-btn" id="searchCustomBtn" title="自定义食物">＋</button>
+      </header>
+
+      <div class="search-bar">
+        <span class="search-ico">🔍</span>
+        <input id="searchInput" type="search" placeholder="搜食物，如：米饭 / 鸡蛋 / 奶茶" autocomplete="off" />
+        <button class="clear-btn hidden" id="searchClear">✕</button>
+      </div>
+
+      <div class="chips" id="catChips"></div>
+
+      <div class="sort-row" id="sortRow">
+        <span class="muted" id="resultCount">—</span>
+        <div class="sort-tabs" id="sortTabs">
+          <button data-sort="default" class="active">默认</button>
+          <button data-sort="kcalAsc">热量↑</button>
+          <button data-sort="kcalDesc">热量↓</button>
+          <button data-sort="proteinDesc">蛋白↓</button>
+        </div>
+      </div>
+
+      <div id="foodList" class="food-list"></div>
+    </section>
+
+    <!-- ================= 拍照 ================= -->
+    <section class="page" id="page-camera" data-page="camera">
+      <header class="topbar">
+        <div>
+          <p class="topbar-kicker">AI 视觉识别 · 本地离线</p>
+          <h1 class="topbar-title">拍照算热量</h1>
+        </div>
+        <button class="icon-btn" id="visionStatusBtn" title="视觉服务状态">⚙️</button>
+      </header>
+
+      <div class="card upload-card" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*" hidden />
+        <div class="upload-empty" id="uploadEmpty">
+          <div class="upload-icon">📷</div>
+          <h3>拍照或上传餐盘照片</h3>
+          <p>AI 自动识别菜品与份量，估算热量</p>
+          <div class="upload-actions">
+            <button class="btn btn-primary" id="btnPick">选择照片</button>
+            <button class="btn btn-ghost" id="btnCamera">手机拍照</button>
+          </div>
+          <p class="tiny muted">照片只在本机处理，不会上传到云端</p>
+        </div>
+        <div class="upload-preview hidden" id="uploadPreview">
+          <img id="previewImg" alt="餐盘照片预览" />
+          <div class="preview-tools">
+            <button class="btn btn-ghost btn-sm" id="btnChange">换一张</button>
+            <button class="btn btn-primary btn-sm" id="btnRecognize">开始识别</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="vision-banner hidden" id="visionBanner"></div>
+
+      <div id="recognizeState"></div>
+
+      <div class="card hidden" id="resultCard">
+        <div class="card-head">
+          <h2 class="card-title">识别结果</h2>
+          <span class="badge badge-green" id="totalKcalBadge">—</span>
+        </div>
+        <p class="tiny muted" id="resultMeta"></p>
+        <div id="resultItems"></div>
+        <div class="row-actions">
+          <button class="btn btn-ghost btn-sm" id="btnAddManual">＋ 手动加一道</button>
+          <button class="btn btn-primary btn-sm" id="btnAddAll">加入今日记录</button>
+        </div>
+        <p class="tiny muted">份量可拖动调整，热量会实时重算。识别仅供估算参考。</p>
+      </div>
+
+      <div class="card tips-card">
+        <h2 class="card-title">拍得更准的小技巧</h2>
+        <ul class="tips">
+          <li>从正上方 45° 俯拍，整盘入镜，别切断边缘</li>
+          <li>光线充足、避免手影；油光会影响份量判断</li>
+          <li>放一个参照物（筷子、勺子、手机）更利于估重</li>
+          <li>多种菜分开拍，或先拍主菜再加配菜</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= 三餐 ================= -->
+    <section class="page" id="page-plan" data-page="plan">
+      <header class="topbar">
+        <div>
+          <p class="topbar-kicker">个性化配餐</p>
+          <h1 class="topbar-title">一日三餐</h1>
+        </div>
+        <button class="icon-btn" id="profileBtn" title="身体档案">👤</button>
+      </header>
+
+      <div class="card profile-card" id="profileCard"></div>
+
+      <div class="plan-actions">
+        <button class="btn btn-primary btn-block" id="btnGenPlan">✨ 生成今日三餐</button>
+        <button class="btn btn-ghost btn-block" id="btnGenAnother">换一套</button>
+      </div>
+
+      <div id="planBody"></div>
+
+      <div class="card hidden" id="planCheckCard">
+        <div class="card-head"><h2 class="card-title">营养达标检查</h2></div>
+        <div id="planCheck"></div>
+      </div>
+    </section>
+
+    <!-- ================= 指南 ================= -->
+    <section class="page" id="page-guide" data-page="guide">
+      <header class="topbar">
+        <div>
+          <p class="topbar-kicker">依据《中国居民膳食指南(2022)》</p>
+          <h1 class="topbar-title">饮食指南</h1>
+        </div>
+      </header>
+
+      <div class="seg" id="guideSeg">
+        <button data-tab="daily" class="active">每日推荐</button>
+        <button data-tab="rules">八准则</button>
+        <button data-tab="scene">场景</button>
+        <button data-tab="gi">GI 速查</button>
+        <button data-tab="swap">交换份</button>
+      </div>
+
+      <div id="guideBody"></div>
+
+      <div class="card disclaimer-card">
+        <p class="tiny muted">
+          本 App 数据参考《中国食物成分表 标准版（第 6 版）》与《中国居民膳食指南（2022）》，
+          计算结果为估算值，仅供健康人群日常参考；孕产妇、儿童、慢性病患者及特殊疾病人群请遵医嘱。
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= 底部导航 ================= -->
+    <nav class="tabbar" id="tabbar">
+      <button class="tab active" data-go="home"><span class="tab-ico">🏠</span><span>今日</span></button>
+      <button class="tab" data-go="search"><span class="tab-ico">🔍</span><span>查询</span></button>
+      <button class="tab tab-center" data-go="camera" aria-label="拍照识别"><span class="tab-fab">📷</span></button>
+      <button class="tab" data-go="plan"><span class="tab-ico">🍱</span><span>三餐</span></button>
+      <button class="tab" data-go="guide"><span class="tab-ico">📖</span><span>指南</span></button>
+    </nav>
+  </div>
+</div>
+
+<!-- 底部弹层 -->
+<div class="sheet-mask hidden" id="sheetMask"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true">
+  <div class="sheet-handle"></div>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<!-- 轻提示 -->
+<div class="toast" id="toast"></div>
+<div class="loading-overlay hidden" id="loading">
+  <div class="spinner"></div>
+  <p id="loadingText">处理中…</p>
+</div>
+
+<script src="src/mealplan.js"></script>
+<script src="src/advice.js"></script>
+<script src="src/foodlog.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
